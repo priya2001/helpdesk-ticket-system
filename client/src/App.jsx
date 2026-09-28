@@ -2,6 +2,8 @@ import { BrowserRouter, Link, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider, useAuth } from './auth/AuthContext.jsx';
 import AuthPage from './pages/AuthPage.jsx';
 import Dashboard from './pages/Dashboard.jsx';
+import CreateTicket from './pages/CreateTicket.jsx';
+import TicketDetails from './pages/TicketDetails.jsx';
 
 function AppRoutes() {
   const { user, loading, error, retry } = useAuth();
@@ -11,7 +13,10 @@ function AppRoutes() {
     <Route path="/" element={<Navigate to={user ? '/dashboard' : '/login'} replace />} />
     <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <AuthPage key="login" mode="login" />} />
     <Route path="/register" element={user ? <Navigate to="/dashboard" replace /> : <AuthPage key="register" mode="register" />} />
-    <Route path="/dashboard" element={user ? <Dashboard /> : <Navigate to="/login" replace />} />
+    <Route path="/dashboard" element={<Navigate to={user ? '/tickets' : '/login'} replace />} />
+    <Route path="/tickets" element={user ? <Dashboard /> : <Navigate to="/login" replace />} />
+    <Route path="/tickets/new" element={user ? <CreateTicket /> : <Navigate to="/login" replace />} />
+    <Route path="/tickets/:id" element={user ? <TicketDetails /> : <Navigate to="/login" replace />} />
     <Route path="*" element={<main className="state-page"><section><h2>Page not found</h2><p><Link to="/">Back to Helpdesk</Link></p></section></main>} />
   </Routes>;
 }

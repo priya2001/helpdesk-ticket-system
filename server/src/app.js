@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import { isDatabaseReady } from './config/database.js';
 import { protectOrigin } from './middleware/auth.js';
 import { authRouter } from './routes/auth.js';
+import { ticketRouter } from './routes/tickets.js';
 
 export const app = express();
 
@@ -13,6 +14,7 @@ app.use(cookieParser());
 app.use('/api', protectOrigin);
 app.use(express.json({ limit: '100kb' }));
 app.use('/api/auth', authRouter);
+app.use('/api/tickets', ticketRouter);
 
 // Liveness: the API process can respond, independently of the database.
 app.get('/api/health', (_req, res) => {

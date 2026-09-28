@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
-    "test": "node --test test/models.test.js test/auth-validation.test.js",
-    "test:integration": "node --test test/database.test.js test/auth.test.js"
+    "test": "node --test test/models.test.js test/auth-validation.test.js test/ticket-validation.test.js",
+    "test:integration": "node --test test/database.test.js test/auth.test.js test/tickets.test.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

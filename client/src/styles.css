@@ -64,3 +64,69 @@ dd { margin: 6px 0 0; font-size: 15px; overflow-wrap: anywhere; }
 .role-label { text-transform: capitalize; }
 @media (max-width: 800px) { .intro-note { display: none; } .auth-layout { gap: 24px; } .auth-layout h1 { font-size: 40px; } .dashboard-grid { grid-template-columns: 1fr; } .dashboard-grid .connection-card { max-width: none; } }
 @media (max-width: 440px) { .dashboard-heading { align-items: flex-start; flex-direction: column; } .auth-layout h1 { font-size: 36px; } }
+
+.workspace { display: block; padding-top: 24px; }
+.workspace-nav, .workspace-nav > div { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.workspace-nav { margin-bottom: 42px; font-size: 14px; }
+.workspace-nav > a { font-weight: 700; text-underline-offset: 5px; }
+.account-name { max-width: 230px; overflow-wrap: anywhere; color: #69756d; }
+.compact-button { width: auto; }
+.workspace h1 { font-size: clamp(32px, 4vw, 46px); letter-spacing: -1.5px; margin: 16px 0; }
+.workspace .description { max-width: 640px; margin-bottom: 0; }
+.button-link { display: inline-block; padding: 15px 20px; background: #203c34; color: white; border-radius: 10px; text-decoration: none; font-size: 14px; font-weight: 600; white-space: nowrap; }
+.button-link:hover { background: #315647; }
+.button-secondary { background: white; color: #203c34; border: 1px solid #ccd6ca; }
+.button-secondary:hover:not(:disabled) { background: #eef3e9; }
+.list-caption { display: flex; justify-content: space-between; color: #69756d; font-size: 13px; margin: 24px 0 14px; }
+.ticket-list { margin: 0; padding: 0; list-style: none; border: 1px solid #e0e7dc; border-radius: 16px; overflow: hidden; background: white; }
+.ticket-row { display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 24px; }
+.ticket-row + .ticket-row { border-top: 1px solid #e0e7dc; }
+.ticket-summary { min-width: 0; }
+.ticket-category { font-size: 11px; color: #69756d; text-transform: uppercase; letter-spacing: 1px; }
+.ticket-row h2 { font-size: 19px; margin: 8px 0; overflow-wrap: anywhere; }
+.ticket-row h2 a { color: #203c34; text-decoration: none; }
+.ticket-row h2 a:hover { text-decoration: underline; }
+.ticket-row p { font-size: 12px; color: #69756d; margin: 0; }
+.ticket-labels, .ticket-badges { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.ticket-labels { justify-content: flex-end; flex-shrink: 0; }
+.badge { display: inline-block; padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+.badge-low { background: #eff2ee; color: #52604c; }
+.badge-medium { background: #fff5da; color: #805b14; }
+.badge-high { background: #ffebe5; color: #993e2b; }
+.badge-open { background: #edf1fc; color: #415e91; }
+.badge-in-progress { background: #fff1d9; color: #805815; }
+.badge-resolved { background: #e9f4e4; color: #36602b; }
+.ticket-open { font-size: 12px; margin-left: 8px; }
+.empty-state { text-align: center; padding: 48px; }
+.empty-state .connection-icon { margin: 0 auto 20px; }
+.empty-state p { margin-bottom: 26px; }
+.pagination { display: flex; align-items: center; justify-content: center; gap: 16px; margin: 24px 0; font-size: 13px; }
+.pagination button { width: auto; }
+.ticket-form { max-width: 760px; }
+.form-field textarea, .form-field select { width: 100%; border: 1px solid #ccd6ca; border-radius: 8px; padding: 12px; font: inherit; font-size: 16px; background: #fcfdfb; color: #203c34; }
+.form-field textarea { resize: vertical; min-height: 160px; }
+.form-field [aria-invalid="true"] { border-color: #ad4231; }
+.form-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.input-hint { font-size: 12px; color: #69756d; }
+.form-actions { display: flex; gap: 24px; align-items: center; margin-top: 24px; }
+.form-actions button { width: auto; min-width: 160px; }
+.form-actions a { font-size: 14px; }
+.ticket-detail-grid { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.ticket-body h2 { margin: 24px 0; font-size: 28px; overflow-wrap: anywhere; }
+.ticket-body h3 { font-size: 13px; margin-top: 32px; }
+.ticket-body .ticket-description { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 15px; }
+.ticket-metadata { border-top: 1px solid #e0e7dc; padding-top: 12px; margin-top: 32px; }
+.ticket-controls { display: grid; gap: 24px; }
+.ticket-controls h2 { font-size: 20px; }
+.ticket-controls .connection-card { padding: 24px; }
+.delete-section p { overflow-wrap: anywhere; }
+.button-danger { background: #a03d2d; }
+.button-danger:hover:not(:disabled) { background: #7f2b20; }
+.button-danger-outline { background: white; border: 1px solid #d9aaa0; color: #963828; }
+.button-danger-outline:hover:not(:disabled) { background: #fff0ed; }
+.delete-actions { display: grid; gap: 10px; }
+.success-message { background: #e9f4e4; color: #36602b; padding: 16px; border-radius: 10px; font-size: 14px; }
+.back-link { white-space: nowrap; font-size: 14px; }
+@media (max-width: 950px) { .ticket-row { align-items: flex-start; flex-direction: column; gap: 16px; } .ticket-labels { justify-content: flex-start; } }
+@media (max-width: 800px) { .ticket-detail-grid { grid-template-columns: 1fr; } .workspace .connection-card { max-width: none; } .workspace .dashboard-heading { flex-wrap: wrap; } }
+@media (max-width: 440px) { .workspace-nav, .workspace-nav > div { gap: 12px; } .account-name { max-width: 95px; font-size: 12px; } .form-columns { grid-template-columns: 1fr; gap: 0; } .ticket-labels { gap: 8px; } .ticket-open { margin-left: 0; } .empty-state { padding: 28px 20px; } .pagination { gap: 10px; } .pagination button { padding: 12px; } }

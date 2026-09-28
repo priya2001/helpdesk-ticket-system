@@ -1,6 +1,6 @@
 # Helpdesk Ticket System
 
-A full-stack mini helpdesk built step by step. **Current milestone: MongoDB integration, registration, login, logout, and a protected dashboard.** Ticket management and admin APIs are planned for the next steps.
+A full-stack mini helpdesk built step by step. **Current milestone: authentication and user ticket management.** Users can create, list, view, update status, and delete their own tickets. Admin functionality is planned for the next step.
 
 ## Stack
 
@@ -36,7 +36,7 @@ Then start the application from the repository root:
 npm run dev
 ```
 
-Start MongoDB before `npm run dev` (see database setup below). Open http://127.0.0.1:5173. The app opens the login page. Choose **Create an account** to register and enter the dashboard. Keep the terminal running; press Ctrl+C to stop both app servers. MongoDB runs separately.
+Start MongoDB before `npm run dev` (see database setup below). Open http://127.0.0.1:5173. The app opens the login page. Choose **Create an account** to register and open your ticket workspace. Keep the terminal running; press Ctrl+C to stop both app servers. MongoDB runs separately.
 
 - Frontend: http://127.0.0.1:5173
 - Backend: http://127.0.0.1:4000
@@ -94,7 +94,7 @@ An existing Atlas database can be used by setting its driver connection URI in `
 
 - User: name (2–80 characters), normalized unique email, bcrypt-format `passwordHash`, role (`user` by default, or `admin`), timestamps. Password hashes are excluded from normal queries and JSON output. Registration hashes passwords with bcrypt at cost 12 before saving. Public registration always assigns the `user` role.
 - Ticket: title (3–150 characters), description (10–5000), category (`Technical`, `Billing`, `Account`, `Other`), priority (`Low`, `Medium`, `High`; default `Medium`), status (`Open`, `In Progress`, `Resolved`; default `Open`), required owner reference, timestamps.
-- An owner reference describes the relationship; the later ticket service must check owner existence and enforce ownership. Query-based updates must use `runValidators: true`, or load/save a validated document.
+- Every ticket API requires a valid session. Creation assigns the current user as owner; reads, status updates, and deletions include that owner in the database filter. Query-based status updates use `runValidators: true`.
 - Duplicate emails produce MongoDB error code `11000`; the registration API returns HTTP 409 and a friendly message.
 
 The API starts only after MongoDB connects and indexes initialize. Startup failure exits with a safe error message; check MongoDB availability, the URI, credentials, and network access. Connection strings are not logged.
@@ -146,14 +146,43 @@ Registration and login share a limit of 20 requests per IP per 15 minutes, inclu
 
 1. From the repository root, run `npm run dev` once. Do not start additional copies in `client` and `server`. If an existing terminal already runs the app, use it. Stop it with Ctrl+C before restarting. The client uses `npm run dev`, not `npm start`.
 2. Open http://127.0.0.1:5173/register. Submit an empty form and check field errors.
-3. Enter your name, email, and a new password of at least 8 characters. Enter a different confirmation first to check validation, then correct it. Successful registration opens `/dashboard` with your name, email, and `user` role.
+3. Enter your name, email, and a new password of at least 8 characters. Enter a different confirmation first to check validation, then correct it. Successful registration opens your ticket workspace with your name. `/dashboard` redirects to `/tickets`.
 4. Refresh `/dashboard`; the session should persist.
 5. Log out. Visiting `/dashboard` again should redirect to `/login`.
-6. Try the wrong password, then the correct password. The error should be clear and successful login should open the dashboard.
+6. Try the wrong password, then the correct password. The error should be clear and successful login should open your ticket workspace.
 7. Log out and try registering the same email; the app should show the duplicate-email error.
 8. Check both forms at a narrow mobile width. Labels, errors, and buttons should remain readable.
 9. Database diagnostics remain available at `/api/health` and `/api/ready`; they are no longer the homepage.
 
 The integration tests create uniquely named `helpdesk_test_*` databases on local MongoDB and remove only those test databases afterward. They do not load `.env` or modify the application database. Tests cover validation, persistence, owner references, timestamps, hashing, unique emails, role injection, cookie flags, session revocation, expired/tampered tokens, origin protection, and rate limits.
 
-The dashboard is currently a welcome/account page. Ticket actions, admin management, screenshots, and deployment configuration will be added in subsequent milestones.
+## Ticket API
+
+All routes require the session cookie. Responses use `{ "ticket": { ... } }` for a single ticket. Ticket fields are `id`, `title`, `description`, `category`, `priority`, `status`, `createdAt`, and `updatedAt`. Dates are ISO timestamps in the API and displayed in the browser's local time.
+
+| Method | Endpoint | Behavior |
+| --- | --- | --- |
+| POST | `/api/tickets` | Create ticket; 201; accepts title, description, category, priority |
+| GET | `/api/tickets?page=1` | Own tickets, newest first; 20 per page |
+| GET | `/api/tickets/:id` | Own ticket details |
+| PATCH | `/api/tickets/:id` | Update status only; body `{ "status": "In Progress" }` |
+| DELETE | `/api/tickets/:id` | Permanently delete an owned ticket; 200 with confirmation message |
+
+List responses include `tickets` and `pagination: { page, pageSize, total, totalPages }`. Page must be a positive integer up to 999999. A page beyond the result set returns an empty list. New tickets always start Open; priority defaults to Medium when omitted. Ownership and initial status are assigned server-side, ignoring any supplied owner/status on creation. PATCH accepts only status; supported transitions are any of Open, In Progress, and Resolved, including reopening.
+
+Invalid form data, IDs, or page values return 400. Unauthenticated requests return 401. Missing and another user's tickets both return 404. The user APIs remain owner-scoped even for admin-role accounts; separate admin APIs will be added next. When a session expires during a ticket action, the frontend returns to login. It does not automatically save unsent form content.
+
+## Manual checks for Step 4
+
+1. Log in and open `/tickets`. A new account should see **No tickets yet**.
+2. Choose **Create ticket** and submit an empty form to check validation. Then enter a title (3–150 characters), description (10–5,000), category, and priority.
+3. Create the ticket. Confirm its details, Open status, chosen priority, and dates. Refresh to verify persistence.
+4. Change status to In Progress, save, then try Resolved. Refresh and check the saved status and updated date.
+5. Return to My tickets and confirm the ticket appears with the correct status.
+6. Copy the ticket URL. Log out, register/log in as a second user, and paste it. The page should show **Ticket not found**; the second user's list must not contain the first user's ticket.
+7. Return to the owner account. Click Delete ticket, then Cancel; confirm the ticket is still there. For a disposable ticket, click Delete ticket again and confirm deletion. The ticket should disappear and its old URL should return Ticket not found.
+8. Check the create form, list, and details at a narrow mobile width. The list paginates after 20 tickets.
+
+Ticket integration tests cover all five protected endpoints, owner/status injection, another user's read/update/delete attempts, status validation, timestamps, pagination, deletion, and revoked sessions. They use disposable test databases.
+
+Admin management, screenshots, and deployment configuration will be added in subsequent milestones.
