@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 
 export default function App() {
   const [status, setStatus] = useState('loading');
+  const [databaseStatus, setDatabaseStatus] = useState('loading');
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
@@ -9,6 +10,7 @@ export default function App() {
     let active = true;
     const timeout = setTimeout(() => controller.abort(), 8000);
     setStatus('loading');
+    setDatabaseStatus('loading');
 
     async function checkConnection() {
       try {
@@ -17,8 +19,14 @@ export default function App() {
         const data = await response.json();
         if (data.status !== 'ok') throw new Error('Unexpected health response');
         if (active) setStatus('connected');
+        const readiness = await fetch('/api/ready', { signal: controller.signal });
+        const database = await readiness.json();
+        if (active) setDatabaseStatus(readiness.ok && database.database === 'connected' ? 'connected' : 'error');
       } catch {
-        if (active) setStatus('error');
+        if (active) {
+          setStatus(current => current === 'connected' ? current : 'error');
+          setDatabaseStatus('error');
+        }
       } finally {
         clearTimeout(timeout);
       }
@@ -52,7 +60,7 @@ export default function App() {
         <section className="connection-card" aria-labelledby="connection-title">
           <div className="card-heading">
             <span className="connection-icon" aria-hidden="true">↗</span>
-            <span className="step-label">STEP 01 / SETUP</span>
+            <span className="step-label">STEP 02 / DATABASE</span>
           </div>
           <h2 id="connection-title">A foundation for better support.</h2>
           <p>The application setup is ready. Check the connection below to confirm the frontend and backend are working together.</p>
@@ -64,9 +72,17 @@ export default function App() {
             {status === 'error' && 'Unable to connect to backend'}
           </div>
 
+          <div className={`connection-status ${databaseStatus}`} role="status" aria-live="polite">
+            <span className="status-dot" aria-hidden="true" />
+            {databaseStatus === 'loading' && 'Checking database connection…'}
+            {databaseStatus === 'connected' && 'Database connected'}
+            {databaseStatus === 'error' && 'Database unavailable'}
+          </div>
+
           {status === 'error' && <p className="error-help">Make sure the backend is running, then try again.</p>}
-          <button type="button" disabled={status === 'loading'} onClick={() => setAttempt(value => value + 1)}>
-            {status === 'loading' ? 'Checking…' : 'Check connection again'}
+          {status === 'connected' && databaseStatus === 'error' && <p className="error-help">Check MongoDB and the backend terminal, then try again.</p>}
+          <button type="button" disabled={status === 'loading' || databaseStatus === 'loading'} onClick={() => setAttempt(value => value + 1)}>
+            {status === 'loading' || databaseStatus === 'loading' ? 'Checking…' : 'Check connection again'}
           </button>
           <p className="setup-note">Registration and ticket management will be added in the next steps.</p>
         </section>
