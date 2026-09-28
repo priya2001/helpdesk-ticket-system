@@ -1,0 +1,35 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;600;700;800&display=swap');
+
+:root { font-family: 'DM Sans', sans-serif; color: #203c34; background: #f6f7f2; font-synthesis: none; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+button, a { -webkit-tap-highlight-color: transparent; }
+.app-shell { max-width: 1200px; margin: auto; padding: 0 48px; }
+.header { display: flex; justify-content: space-between; align-items: center; padding: 30px 0; border-bottom: 1px solid #dce3da; gap: 20px; }
+.brand { display: flex; align-items: center; gap: 12px; font-size: 26px; font-weight: 700; text-decoration: none; color: inherit; letter-spacing: -1px; }
+.brand-icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: #203c34; color: #d5edac; }
+.brand-dot { color: #699240; }
+.header-label { font-size: 13px; color: #627168; }
+main { display: grid; grid-template-columns: 1.1fr 1fr; align-items: center; gap: 70px; min-height: calc(100svh - 182px); padding: 70px 0; }
+.eyebrow, .step-label { font-size: 11px; letter-spacing: 2px; font-weight: 700; color: #637c5b; }
+h1 { font-family: 'Manrope', sans-serif; font-size: clamp(42px, 5vw, 64px); line-height: 1.13; letter-spacing: -3px; margin: 24px 0; }
+.description { max-width: 380px; font-size: 17px; line-height: 1.8; color: #69756d; }
+.connection-card { background: white; padding: 34px; border: 1px solid #e0e7dc; border-radius: 22px; box-shadow: 0 20px 60px #203c3409; }
+.card-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 26px; }
+.connection-icon { display: grid; place-items: center; background: #eff5e8; border-radius: 12px; width: 48px; height: 48px; font-size: 27px; }
+h2 { font-family: 'Manrope', sans-serif; font-size: 25px; line-height: 1.35; letter-spacing: -0.7px; margin: 0 0 12px; }
+.connection-card p { color: #69756d; font-size: 14px; line-height: 1.7; }
+.connection-status { display: flex; align-items: center; gap: 10px; padding: 16px; margin: 26px 0 16px; border-radius: 10px; font-size: 14px; font-weight: 600; background: #f1f3ed; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: #8a9276; flex-shrink: 0; }
+.connected { background: #edf6e9; color: #35632e; }
+.connected .status-dot { background: #538342; }
+.error { background: #fff0ed; color: #983e30; }
+.error .status-dot { background: #b34e3e; }
+button { width: 100%; border: 0; border-radius: 10px; background: #203c34; color: white; padding: 15px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+button:hover:not(:disabled) { background: #315647; }
+button:disabled { opacity: 0.6; cursor: wait; }
+:focus-visible { outline: 3px solid #729a52; outline-offset: 4px; }
+.connection-card .setup-note { margin: 22px 0 0; font-size: 12px; }
+footer { display: flex; justify-content: space-between; gap: 16px; border-top: 1px solid #dce3da; padding: 24px 0; color: #748075; font-size: 12px; }
+@media (max-width: 800px) { .app-shell { padding: 0 24px; } main { grid-template-columns: 1fr; gap: 32px; padding: 44px 0; } .description { max-width: 480px; } h1 { letter-spacing: -2px; } .connection-card { max-width: 560px; width: 100%; } }
+@media (max-width: 440px) { .header-label { display: none; } .connection-card { padding: 24px; } footer { flex-direction: column; } }
