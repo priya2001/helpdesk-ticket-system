@@ -1,10 +1,18 @@
 import express from 'express';
+import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
 import { isDatabaseReady } from './config/database.js';
+import { protectOrigin } from './middleware/auth.js';
+import { authRouter } from './routes/auth.js';
 
 export const app = express();
 
 app.disable('x-powered-by');
+app.use(helmet());
+app.use(cookieParser());
+app.use('/api', protectOrigin);
 app.use(express.json({ limit: '100kb' }));
+app.use('/api/auth', authRouter);
 
 // Liveness: the API process can respond, independently of the database.
 app.get('/api/health', (_req, res) => {

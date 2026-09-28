@@ -6,11 +6,16 @@
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
-    "test": "node --test test/models.test.js",
-    "test:integration": "node --test test/database.test.js"
+    "test": "node --test test/models.test.js test/auth-validation.test.js",
+    "test:integration": "node --test test/database.test.js test/auth.test.js"
   },
   "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.7.0",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.10.2"
   }
 }

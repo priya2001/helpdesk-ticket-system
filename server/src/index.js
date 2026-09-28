@@ -5,15 +5,18 @@ import { app } from './app.js';
 import { connectDatabase } from './config/database.js';
 import { User } from './models/User.js';
 import { Ticket } from './models/Ticket.js';
+import { Session } from './models/Session.js';
+import { getAuthConfig } from './config/auth.js';
 
 const envPath = fileURLToPath(new URL('../.env', import.meta.url));
 if (existsSync(envPath)) process.loadEnvFile(envPath);
 const port = 4000;
 
 try {
+  getAuthConfig();
   await connectDatabase(process.env.MONGODB_URI);
   // Ensure the unique email index exists before accepting requests.
-  await Promise.all([User.init(), Ticket.init()]);
+  await Promise.all([User.init(), Ticket.init(), Session.init()]);
   console.log('MongoDB connected');
 
   mongoose.connection.on('disconnected', () => console.warn('MongoDB disconnected'));
@@ -44,7 +47,7 @@ try {
   process.on('SIGINT', shutdown);
   process.on('SIGTERM', shutdown);
 } catch (error) {
-  console.error(error.message.startsWith('MongoDB connection failed') || error.message.startsWith('Set a valid MONGODB_URI')
+  console.error(error.message.startsWith('MongoDB connection failed') || error.message.startsWith('Set a valid MONGODB_URI') || error.message.startsWith('Set JWT_SECRET') || error.message.startsWith('APP_ORIGIN must')
     ? error.message
     : 'Database initialization failed. Check database permissions and indexes.');
   await mongoose.disconnect();

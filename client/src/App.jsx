@@ -1,94 +1,28 @@
-import { useEffect, useState } from 'react';
+import { BrowserRouter, Link, Navigate, Route, Routes } from 'react-router-dom';
+import { AuthProvider, useAuth } from './auth/AuthContext.jsx';
+import AuthPage from './pages/AuthPage.jsx';
+import Dashboard from './pages/Dashboard.jsx';
+
+function AppRoutes() {
+  const { user, loading, error, retry } = useAuth();
+  if (loading) return <main className="state-page"><p role="status">Checking your session…</p></main>;
+  if (error) return <main className="state-page"><section className="connection-card"><h2>Unable to connect</h2><p role="alert">{error}</p><button onClick={retry}>Try again</button></section></main>;
+  return <Routes>
+    <Route path="/" element={<Navigate to={user ? '/dashboard' : '/login'} replace />} />
+    <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <AuthPage key="login" mode="login" />} />
+    <Route path="/register" element={user ? <Navigate to="/dashboard" replace /> : <AuthPage key="register" mode="register" />} />
+    <Route path="/dashboard" element={user ? <Dashboard /> : <Navigate to="/login" replace />} />
+    <Route path="*" element={<main className="state-page"><section><h2>Page not found</h2><p><Link to="/">Back to Helpdesk</Link></p></section></main>} />
+  </Routes>;
+}
 
 export default function App() {
-  const [status, setStatus] = useState('loading');
-  const [databaseStatus, setDatabaseStatus] = useState('loading');
-  const [attempt, setAttempt] = useState(0);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    let active = true;
-    const timeout = setTimeout(() => controller.abort(), 8000);
-    setStatus('loading');
-    setDatabaseStatus('loading');
-
-    async function checkConnection() {
-      try {
-        const response = await fetch('/api/health', { signal: controller.signal });
-        if (!response.ok) throw new Error('Health check failed');
-        const data = await response.json();
-        if (data.status !== 'ok') throw new Error('Unexpected health response');
-        if (active) setStatus('connected');
-        const readiness = await fetch('/api/ready', { signal: controller.signal });
-        const database = await readiness.json();
-        if (active) setDatabaseStatus(readiness.ok && database.database === 'connected' ? 'connected' : 'error');
-      } catch {
-        if (active) {
-          setStatus(current => current === 'connected' ? current : 'error');
-          setDatabaseStatus('error');
-        }
-      } finally {
-        clearTimeout(timeout);
-      }
-    }
-
-    checkConnection();
-    return () => {
-      active = false;
-      clearTimeout(timeout);
-      controller.abort();
-    };
-  }, [attempt]);
-
-  return (
-    <div className="app-shell">
-      <header className="header">
-        <a className="brand" href="/" aria-label="Helpdesk home">
-          <span className="brand-icon" aria-hidden="true">h.</span>
-          <span>helpdesk<span className="brand-dot">.</span></span>
-        </a>
-        <span className="header-label">Support, made simple</span>
-      </header>
-
-      <main>
-        <section className="intro" aria-labelledby="page-title">
-          <p className="eyebrow">YOUR SUPPORT STARTS HERE</p>
-          <h1 id="page-title">Helpdesk<br />Ticket System<span className="brand-dot">.</span></h1>
-          <p className="description">A dedicated space to raise requests, track progress, and get the support you need.</p>
-        </section>
-
-        <section className="connection-card" aria-labelledby="connection-title">
-          <div className="card-heading">
-            <span className="connection-icon" aria-hidden="true">↗</span>
-            <span className="step-label">STEP 02 / DATABASE</span>
-          </div>
-          <h2 id="connection-title">A foundation for better support.</h2>
-          <p>The application setup is ready. Check the connection below to confirm the frontend and backend are working together.</p>
-
-          <div className={`connection-status ${status}`} role="status" aria-live="polite">
-            <span className="status-dot" aria-hidden="true" />
-            {status === 'loading' && 'Checking backend connection…'}
-            {status === 'connected' && 'Backend connected'}
-            {status === 'error' && 'Unable to connect to backend'}
-          </div>
-
-          <div className={`connection-status ${databaseStatus}`} role="status" aria-live="polite">
-            <span className="status-dot" aria-hidden="true" />
-            {databaseStatus === 'loading' && 'Checking database connection…'}
-            {databaseStatus === 'connected' && 'Database connected'}
-            {databaseStatus === 'error' && 'Database unavailable'}
-          </div>
-
-          {status === 'error' && <p className="error-help">Make sure the backend is running, then try again.</p>}
-          {status === 'connected' && databaseStatus === 'error' && <p className="error-help">Check MongoDB and the backend terminal, then try again.</p>}
-          <button type="button" disabled={status === 'loading' || databaseStatus === 'loading'} onClick={() => setAttempt(value => value + 1)}>
-            {status === 'loading' || databaseStatus === 'loading' ? 'Checking…' : 'Check connection again'}
-          </button>
-          <p className="setup-note">Registration and ticket management will be added in the next steps.</p>
-        </section>
-      </main>
-
-      <footer>Mini Helpdesk & Support Ticket System <span>Built one step at a time.</span></footer>
-    </div>
-  );
+  return <BrowserRouter><AuthProvider><div className="app-shell">
+    <header className="header">
+      <Link className="brand" to="/" aria-label="Helpdesk home"><span className="brand-icon" aria-hidden="true">h.</span><span>helpdesk<span className="brand-dot">.</span></span></Link>
+      <span className="header-label">Support, made simple</span>
+    </header>
+    <AppRoutes />
+    <footer>Mini Helpdesk & Support Ticket System <span>A little help, a lot of progress.</span></footer>
+  </div></AuthProvider></BrowserRouter>;
 }

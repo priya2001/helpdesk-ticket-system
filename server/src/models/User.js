@@ -11,7 +11,7 @@ const userSchema = new mongoose.Schema({
     match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
     unique: true,
   },
-  // The authentication service will hash passwords before storing them in Step 3.
+  // Authentication hashes passwords before storing them; plaintext is never saved.
   passwordHash: {
     type: String,
     required: true,
