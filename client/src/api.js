@@ -9,7 +9,16 @@ export async function api(path, options = {}) {
   } catch {
     throw new Error('Unable to reach the server. Check your connection and try again.');
   }
-  const data = await response.json().catch(() => ({}));
+  let data;
+  try {
+    data = await response.json();
+    if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('Invalid JSON payload');
+  } catch {
+    const error = new Error('The server returned an unreadable response. Please try again.');
+    error.status = response.status;
+    error.fields = {};
+    throw error;
+  }
   if (!response.ok) {
     const error = new Error(data.message || 'Something went wrong. Please try again.');
     error.status = response.status;

@@ -52,6 +52,8 @@ The Vite development server proxies `/api` requests to the backend. No CORS setu
 | `npm run dev --workspace=client` | Run frontend only |
 | `npm run dev --workspace=server` | Run backend only |
 | `npm run build` | Build frontend into `client/dist` |
+| `npm test` | Run frontend API/error handling tests and backend validation tests |
+| `npm run test:integration` | Run database, authentication, ticket, and admin API integration tests (local MongoDB required) |
 | `npm start --workspace=server` | Run backend without watch mode |
 | `npm run make-admin --workspace=server -- email@example.com` | Promote an existing registered account to admin |
 | `npm test --workspace=server` | Validate models without a database |
