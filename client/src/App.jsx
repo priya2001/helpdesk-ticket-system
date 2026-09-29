@@ -4,6 +4,7 @@ import AuthPage from './pages/AuthPage.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import CreateTicket from './pages/CreateTicket.jsx';
 import TicketDetails from './pages/TicketDetails.jsx';
+import AdminDashboard from './pages/AdminDashboard.jsx';
 
 function AppRoutes() {
   const { user, loading, error, retry } = useAuth();
@@ -13,7 +14,8 @@ function AppRoutes() {
     <Route path="/" element={<Navigate to={user ? '/dashboard' : '/login'} replace />} />
     <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <AuthPage key="login" mode="login" />} />
     <Route path="/register" element={user ? <Navigate to="/dashboard" replace /> : <AuthPage key="register" mode="register" />} />
-    <Route path="/dashboard" element={<Navigate to={user ? '/tickets' : '/login'} replace />} />
+    <Route path="/dashboard" element={<Navigate to={user ? user.role === 'admin' ? '/admin' : '/tickets' : '/login'} replace />} />
+    <Route path="/admin" element={!user ? <Navigate to="/login" replace /> : user.role === 'admin' ? <AdminDashboard /> : <main className="state-page"><section><h2>Admin access required</h2><p>This page is available to administrators.</p><Link to="/tickets">Back to my tickets</Link></section></main>} />
     <Route path="/tickets" element={user ? <Dashboard /> : <Navigate to="/login" replace />} />
     <Route path="/tickets/new" element={user ? <CreateTicket /> : <Navigate to="/login" replace />} />
     <Route path="/tickets/:id" element={user ? <TicketDetails /> : <Navigate to="/login" replace />} />

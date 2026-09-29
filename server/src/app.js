@@ -5,6 +5,7 @@ import { isDatabaseReady } from './config/database.js';
 import { protectOrigin } from './middleware/auth.js';
 import { authRouter } from './routes/auth.js';
 import { ticketRouter } from './routes/tickets.js';
+import { adminRouter } from './routes/admin.js';
 
 export const app = express();
 
@@ -15,6 +16,7 @@ app.use('/api', protectOrigin);
 app.use(express.json({ limit: '100kb' }));
 app.use('/api/auth', authRouter);
 app.use('/api/tickets', ticketRouter);
+app.use('/api/admin', adminRouter);
 
 // Liveness: the API process can respond, independently of the database.
 app.get('/api/health', (_req, res) => {

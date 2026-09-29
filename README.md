@@ -1,6 +1,6 @@
 # Helpdesk Ticket System
 
-A full-stack mini helpdesk built step by step. **Current milestone: authentication and user ticket management.** Users can create, list, view, update status, and delete their own tickets. Admin functionality is planned for the next step.
+A full-stack mini helpdesk built step by step. **Current milestone: authentication, user ticket management, and admin dashboard.** Users manage their own tickets. Admins can view all tickets, search/filter, update status, and see overall statistics.
 
 ## Stack
 
@@ -53,6 +53,7 @@ The Vite development server proxies `/api` requests to the backend. No CORS setu
 | `npm run dev --workspace=server` | Run backend only |
 | `npm run build` | Build frontend into `client/dist` |
 | `npm start --workspace=server` | Run backend without watch mode |
+| `npm run make-admin --workspace=server -- email@example.com` | Promote an existing registered account to admin |
 | `npm test --workspace=server` | Validate models without a database |
 | `npm run test:integration --workspace=server` | Test database and authentication APIs against local MongoDB |
 
@@ -146,7 +147,7 @@ Registration and login share a limit of 20 requests per IP per 15 minutes, inclu
 
 1. From the repository root, run `npm run dev` once. Do not start additional copies in `client` and `server`. If an existing terminal already runs the app, use it. Stop it with Ctrl+C before restarting. The client uses `npm run dev`, not `npm start`.
 2. Open http://127.0.0.1:5173/register. Submit an empty form and check field errors.
-3. Enter your name, email, and a new password of at least 8 characters. Enter a different confirmation first to check validation, then correct it. Successful registration opens your ticket workspace with your name. `/dashboard` redirects to `/tickets`.
+3. Enter your name, email, and a new password of at least 8 characters. Enter a different confirmation first to check validation, then correct it. Successful registration opens your ticket workspace with your name. `/dashboard` redirects to `/tickets` for users and `/admin` for admins.
 4. Refresh `/dashboard`; the session should persist.
 5. Log out. Visiting `/dashboard` again should redirect to `/login`.
 6. Try the wrong password, then the correct password. The error should be clear and successful login should open your ticket workspace.
@@ -170,7 +171,7 @@ All routes require the session cookie. Responses use `{ "ticket": { ... } }` for
 
 List responses include `tickets` and `pagination: { page, pageSize, total, totalPages }`. Page must be a positive integer up to 999999. A page beyond the result set returns an empty list. New tickets always start Open; priority defaults to Medium when omitted. Ownership and initial status are assigned server-side, ignoring any supplied owner/status on creation. PATCH accepts only status; supported transitions are any of Open, In Progress, and Resolved, including reopening.
 
-Invalid form data, IDs, or page values return 400. Unauthenticated requests return 401. Missing and another user's tickets both return 404. The user APIs remain owner-scoped even for admin-role accounts; separate admin APIs will be added next. When a session expires during a ticket action, the frontend returns to login. It does not automatically save unsent form content.
+Invalid form data, IDs, or page values return 400. Unauthenticated requests return 401. Missing and another user's tickets both return 404. The user APIs remain owner-scoped even for admin-role accounts; the separate admin APIs below provide access to all tickets. When a session expires during a ticket action, the frontend returns to login. It does not automatically save unsent form content.
 
 ## Manual checks for Step 4
 
@@ -185,4 +186,42 @@ Invalid form data, IDs, or page values return 400. Unauthenticated requests retu
 
 Ticket integration tests cover all five protected endpoints, owner/status injection, another user's read/update/delete attempts, status validation, timestamps, pagination, deletion, and revoked sessions. They use disposable test databases.
 
-Admin management, screenshots, and deployment configuration will be added in subsequent milestones.
+## Admin setup and dashboard
+
+1. Register an account through the app.
+2. From the repository root, run the following in a separate terminal while the app stays running. Replace the email with that account's registered email:
+
+```sh
+npm run make-admin --workspace=server -- your-email@example.com
+```
+
+The command loads `server/.env`, updates only the specified existing account, and is safe to repeat. It does not create accounts or change passwords. Unknown emails produce an error without making changes. This is a local maintenance command for someone who already has access to the server and database; there is no public role-changing API.
+
+3. Refresh the app to reload your role. Open http://127.0.0.1:5173/admin or use **Admin dashboard** in the workspace navigation. Future logins automatically open the admin dashboard. **My tickets** remains scoped to the admin's own tickets.
+
+### Admin endpoints
+
+Both endpoints require a valid session and the current database role `admin`. Anonymous users receive 401; normal users receive 403, including when a token claims an admin role. Role changes are checked on every request.
+
+| Method | Endpoint | Behavior |
+| --- | --- | --- |
+| GET | `/api/admin/tickets` | List all users' tickets, 20 per page, newest first; include owner name/email, pagination, and global statistics |
+| PATCH | `/api/admin/tickets/:id` | Update any ticket's status; body `{ "status": "Resolved" }` |
+
+List query parameters: `search` (case-insensitive literal title substring, maximum 150 characters), `status` (Open, In Progress, Resolved), `priority` (Low, Medium, High), and `page` (positive integer up to 999999). Empty filters mean all values. Filters combine with AND; search characters like `[` and `.*` are treated literally, not as regular expressions. Invalid query values return 400.
+
+List responses contain `tickets`, `pagination`, and `statistics: { total, open, inProgress, resolved }`. Each ticket includes `owner: { name, email }` (or null when its account is unavailable). Password hashes are never included. Statistics always cover all tickets; pagination totals cover only the filtered results. Updating a status refreshes both counts and the current filtered list, so a ticket may disappear if it no longer matches the filter.
+
+### Manual checks for Step 5
+
+1. Create tickets using two normal user accounts with different priorities/statuses.
+2. Promote your selected admin account using the command above and refresh the browser.
+3. Open Admin dashboard. Confirm both users' tickets and owner details are visible, and check Total/Open/In Progress/Resolved counts.
+4. Search for part of a title and click Apply. Combine it with a status and priority, then click Clear to reset. Filters are saved in the URL and survive refresh.
+5. Expand **View description and dates**. Change a ticket's status and click Save status; verify counts and the owner's ticket page update.
+6. Log in as a normal user and open `/admin`: it must show **Admin access required**. The admin APIs must return 403 for that user's session.
+7. Check the dashboard at mobile width and check an empty search result.
+
+Automated admin tests cover the promotion command, role checks (including revocation), all-ticket listing, combined filters, literal title search, global counts, pagination, missing owners, input validation, and cross-owner status updates.
+
+Screenshots, final UI verification, and deployment configuration will be completed in subsequent milestones.

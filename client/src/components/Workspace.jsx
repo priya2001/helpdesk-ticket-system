@@ -18,7 +18,7 @@ export default function Workspace({ title, description, children, action }) {
     finally { setBusy(false); }
   }
   return <main className="workspace">
-    <nav className="workspace-nav" aria-label="Workspace"><Link to="/tickets">My tickets</Link><div><span className="account-name">{user.name}</span><button className="button-secondary compact-button" onClick={logout} disabled={busy}>{busy ? 'Logging out…' : 'Log out'}</button></div></nav>
+    <nav className="workspace-nav" aria-label="Workspace"><div className="workspace-links"><Link to="/tickets">My tickets</Link>{user.role === 'admin' && <Link to="/admin">Admin dashboard</Link>}</div><div><span className="account-name">{user.name}</span><button className="button-secondary compact-button" onClick={logout} disabled={busy}>{busy ? 'Logging out…' : 'Log out'}</button></div></nav>
     {error && <p className="form-message" role="alert">{error}</p>}
     <section className="dashboard-heading"><div><p className="eyebrow">YOUR SUPPORT WORKSPACE</p><h1>{title}</h1><p className="description">{description}</p></div>{action}</section>
     {children}
