@@ -15,6 +15,26 @@ A full-stack support portal built for a technical assessment. Users can register
 - Responsive layouts, form validation, loading indicators, empty states, and error/retry states.
 - Backend authorization, input validation, authentication rate limiting, and security headers.
 
+## Screenshots
+
+These screenshots use fictional demo records in an isolated local database.
+
+### Sign in
+
+![Sign-in page](docs/screenshots/login.png)
+
+### User tickets
+
+![User ticket list](docs/screenshots/tickets.png)
+
+### Ticket details
+
+![Ticket details and status controls](docs/screenshots/ticket-details.png)
+
+### Admin dashboard
+
+![Admin statistics and filters](docs/screenshots/admin.png)
+
 ## Tech stack
 
 React 19, React Router, Vite, CSS, Node.js 24, Express 5, MongoDB, Mongoose, bcrypt, JSON Web Tokens, and Node's built-in test runner. The repository uses npm workspaces (`client` and `server`).
@@ -151,26 +171,6 @@ Admin query example: `/api/admin/tickets?search=invoice&status=Open&priority=Hig
 
 User management is registration and authenticated profile retrieval, with a local CLI for administrator provisioning. General user-edit/delete administration is not included.
 
-## Screenshots
-
-These screenshots use fictional demo records in an isolated local database.
-
-### Sign in
-
-![Sign-in page](docs/screenshots/login.png)
-
-### User tickets
-
-![User ticket list](docs/screenshots/tickets.png)
-
-### Ticket details
-
-![Ticket details and status controls](docs/screenshots/ticket-details.png)
-
-### Admin dashboard
-
-![Admin statistics and filters](docs/screenshots/admin.png)
-
 ## Verification
 
 ```sh
@@ -204,7 +204,3 @@ Suggested reviewer flow: register → create ticket → update status → refres
 Ticket ownership is enforced by database queries, not only by UI controls. The server reads the user's current role, and logout revokes the stored session. Password hashes are excluded from normal model output. Write requests have origin checks; production cookies are Secure and local cookies are HttpOnly/SameSite=Lax.
 
 This assessment intentionally omits email verification, password reset, attachments, and notifications. Deletion is permanent. Authentication rate limits are stored in process memory; multi-instance production deployments would need a shared rate-limit store.
-
-## Optional deployment
-
-See [Render + Vercel deployment instructions](docs/DEPLOYMENT.md) only if a public deployment is required later. The current submission is local. Render cannot reach your laptop's MongoDB through `127.0.0.1`: that address refers to the Render server itself. Public deployment needs a database reachable from the backend. The Vercel backend destination remains a placeholder and must be configured before deployment.
