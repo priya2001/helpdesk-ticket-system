@@ -52,6 +52,8 @@ The Vite development server proxies `/api` requests to the backend. No CORS setu
 | `npm run dev --workspace=client` | Run frontend only |
 | `npm run dev --workspace=server` | Run backend only |
 | `npm run build` | Build frontend into `client/dist` |
+| `npm run configure:vercel -- https://YOUR-API.onrender.com` | Set the actual public backend URL for Vercel |
+| `npm run build:vercel` | Validate the backend URL, then build for Vercel |
 | `npm test` | Run frontend API/error handling tests and backend validation tests |
 | `npm run test:integration` | Run database, authentication, ticket, and admin API integration tests (local MongoDB required) |
 | `npm start --workspace=server` | Run backend without watch mode |
@@ -59,7 +61,7 @@ The Vite development server proxies `/api` requests to the backend. No CORS setu
 | `npm test --workspace=server` | Validate models without a database |
 | `npm run test:integration --workspace=server` | Test database and authentication APIs against local MongoDB |
 
-The frontend build is not a full deployment configuration. Production hosting and API routing will be configured in a later step.
+Vercel frontend and Render backend configuration is included. Follow [the deployment guide](docs/DEPLOYMENT.md) for Atlas, environment variables, API rewrites and live checks. Real hosting URLs still need to be configured; no live deployment has been created.
 
 ## Environment variables and database
 
@@ -69,10 +71,13 @@ Copy `server/.env.example` to `server/.env` once; do not overwrite an existing c
 | --- | --- | --- |
 | `MONGODB_URI` | Yes | `mongodb://127.0.0.1:27017/helpdesk_ticket_system` |
 | `JWT_SECRET` | Yes | Generate a random secret of at least 32 characters; never commit it |
-| `APP_ORIGIN` | No | `http://127.0.0.1:5173`; exact frontend origin, no trailing slash |
+| `APP_ORIGIN` | Yes in production | `http://127.0.0.1:5173`; exact frontend origin, no trailing slash |
 | `NODE_ENV` | No | `development`; use `production` with HTTPS for Secure cookies |
+| `PORT` | No | `4000` locally; Render supplies its port |
+| `HOST` | No | `127.0.0.1` locally; `0.0.0.0` in production |
+| `TRUST_PROXY_HOPS` | No | `0` locally; Render configuration starts at `1` |
 
-The development ports remain 5173 (frontend) and 4000 (backend). Never commit `.env` files or paste database credentials into chat. The example contains a local URI and a placeholder secret; the server refuses to start with the placeholder.
+Development defaults are 5173 (frontend) and 4000 (backend). Never commit `.env` files or paste database credentials into chat. The example contains a local URI and a placeholder secret; the server refuses to start with the placeholder.
 
 ### Local MongoDB
 
@@ -226,4 +231,4 @@ List responses contain `tickets`, `pagination`, and `statistics: { total, open, 
 
 Automated admin tests cover the promotion command, role checks (including revocation), all-ticket listing, combined filters, literal title search, global counts, pagination, missing owners, input validation, and cross-owner status updates.
 
-Screenshots, final UI verification, and deployment configuration will be completed in subsequent milestones.
+Final QA is recorded in [TESTING.md](docs/TESTING.md). Screenshots and live deployment verification remain part of submission preparation.

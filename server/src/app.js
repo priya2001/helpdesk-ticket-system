@@ -12,7 +12,11 @@ export const app = express();
 app.disable('x-powered-by');
 app.use(helmet());
 app.use(cookieParser());
-app.use('/api', protectOrigin);
+app.use('/api', (_req, res, next) => {
+  res.set('Cache-Control', 'no-store');
+  res.set('Vercel-CDN-Cache-Control', 'no-store');
+  next();
+}, protectOrigin);
 app.use(express.json({ limit: '100kb' }));
 app.use('/api/auth', authRouter);
 app.use('/api/tickets', ticketRouter);

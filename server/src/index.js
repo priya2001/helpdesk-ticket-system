@@ -7,13 +7,15 @@ import { User } from './models/User.js';
 import { Ticket } from './models/Ticket.js';
 import { Session } from './models/Session.js';
 import { getAuthConfig } from './config/auth.js';
+import { getServerConfig } from './config/server.js';
 
 const envPath = fileURLToPath(new URL('../.env', import.meta.url));
 if (existsSync(envPath)) process.loadEnvFile(envPath);
-const port = 4000;
 
 try {
   getAuthConfig();
+  const { port, host, trustProxy } = getServerConfig();
+  app.set('trust proxy', trustProxy);
   await connectDatabase(process.env.MONGODB_URI);
   // Ensure the unique email index exists before accepting requests.
   await Promise.all([User.init(), Ticket.init(), Session.init()]);
@@ -22,8 +24,8 @@ try {
   mongoose.connection.on('disconnected', () => console.warn('MongoDB disconnected'));
   mongoose.connection.on('error', () => console.error('MongoDB connection error. Check database availability.'));
 
-  const server = app.listen(port, '127.0.0.1', (error) => {
-    if (!error) console.log(`Helpdesk API running at http://127.0.0.1:${port}`);
+  const server = app.listen(port, host, (error) => {
+    if (!error) console.log(`Helpdesk API listening on ${host}:${port}`);
   });
 
   server.on('error', async (error) => {
@@ -47,7 +49,7 @@ try {
   process.on('SIGINT', shutdown);
   process.on('SIGTERM', shutdown);
 } catch (error) {
-  console.error(error.message.startsWith('MongoDB connection failed') || error.message.startsWith('Set a valid MONGODB_URI') || error.message.startsWith('Set JWT_SECRET') || error.message.startsWith('APP_ORIGIN must')
+  console.error(/^(MongoDB connection failed|Set a valid MONGODB_URI|Set JWT_SECRET|APP_ORIGIN must|PORT must|TRUST_PROXY_HOPS must)/.test(error.message)
     ? error.message
     : 'Database initialization failed. Check database permissions and indexes.');
   await mongoose.disconnect();

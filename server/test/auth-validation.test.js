@@ -14,15 +14,17 @@ test('registration validates types, confirmation, and bcrypt byte limits', () =>
 });
 
 test('auth config requires a secret and production cookies are secure', () => {
-  const previous = { secret: process.env.JWT_SECRET, env: process.env.NODE_ENV };
+  const previous = { secret: process.env.JWT_SECRET, env: process.env.NODE_ENV, origin: process.env.APP_ORIGIN };
   try {
     delete process.env.JWT_SECRET;
     assert.throws(getAuthConfig, /JWT_SECRET/);
     process.env.JWT_SECRET = 'test-only-secret-that-is-at-least-32-characters';
     process.env.NODE_ENV = 'production';
+    process.env.APP_ORIGIN = 'https://helpdesk.example';
     assert.deepEqual(cookieOptions(), { httpOnly: true, secure: true, sameSite: 'lax', path: '/' });
   } finally {
     if (previous.secret === undefined) delete process.env.JWT_SECRET; else process.env.JWT_SECRET = previous.secret;
     if (previous.env === undefined) delete process.env.NODE_ENV; else process.env.NODE_ENV = previous.env;
+    if (previous.origin === undefined) delete process.env.APP_ORIGIN; else process.env.APP_ORIGIN = previous.origin;
   }
 });
