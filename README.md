@@ -1,234 +1,210 @@
-# Helpdesk Ticket System
+# Mini Helpdesk & Support Ticket System
 
-A full-stack mini helpdesk built step by step. **Current milestone: authentication, user ticket management, and admin dashboard.** Users manage their own tickets. Admins can view all tickets, search/filter, update status, and see overall statistics.
+A full-stack support portal built for a technical assessment. Users can register, sign in, create tickets, track their status, and delete their own tickets. Administrators can review all tickets, search and filter them, update statuses, and view ticket statistics.
 
-## Stack
+**Repository:** https://github.com/priya2001/helpdesk-ticket-system
 
-- React + Vite frontend
-- Node.js + Express REST API
-- MongoDB + Mongoose for database integration and schema validation
-- React Router for frontend routing
-- bcrypt password hashing, JWT cookies, and database-backed session revocation
-- Helmet headers and express-rate-limit
-- CSS for responsive styling
-- npm workspaces to manage both applications
+**Submission mode:** local application with local MongoDB. A working public deployment is not included. Deployment configuration is optional and requires additional setup.
 
-## Requirements and setup
+## Features
 
-Use Node.js 24 LTS and npm (development verified with Node 24.15.0 and npm 11.12.1).
+- Registration, login, logout, protected pages, and persistent sessions.
+- Password hashing with bcrypt; JWT stored in an HttpOnly cookie, with server-side session revocation.
+- Owner-scoped ticket creation, pagination, details, status updates, and deletion.
+- Admin dashboard with title search, status/priority filters, and global ticket counts.
+- Responsive layouts, form validation, loading indicators, empty states, and error/retry states.
+- Backend authorization, input validation, authentication rate limiting, and security headers.
 
-From the repository root:
+## Tech stack
 
-```sh
-npm install
-cp server/.env.example server/.env
-```
+React 19, React Router, Vite, CSS, Node.js 24, Express 5, MongoDB, Mongoose, bcrypt, JSON Web Tokens, and Node's built-in test runner. The repository uses npm workspaces (`client` and `server`).
 
-Generate a secret, then replace the `JWT_SECRET` placeholder in `server/.env` with the output:
+## Run locally
 
-```sh
-node -e 'console.log(require("node:crypto").randomBytes(48).toString("hex"))'
-```
+### 1. Prerequisites and dependencies
 
-Then start the application from the repository root:
+Install Node.js **24.x** (with npm) and MongoDB Community Server. MongoDB must be running locally; MongoDB Compass alone is a database client, not the database server.
 
 ```sh
-npm run dev
+git clone https://github.com/priya2001/helpdesk-ticket-system.git
+cd helpdesk-ticket-system
+npm ci
 ```
 
-Start MongoDB before `npm run dev` (see database setup below). Open http://127.0.0.1:5173. The app opens the login page. Choose **Create an account** to register and open your ticket workspace. Keep the terminal running; press Ctrl+C to stop both app servers. MongoDB runs separately.
+### 2. Start MongoDB
 
-- Frontend: http://127.0.0.1:5173
-- Backend: http://127.0.0.1:4000
-- Health API: http://127.0.0.1:4000/api/health
-
-The Vite development server proxies `/api` requests to the backend. No CORS setup is necessary for this local development flow. Both servers bind to the local machine.
-
-## Commands
-
-| Command | Purpose |
-| --- | --- |
-| `npm run dev` | Run frontend and backend together |
-| `npm run dev --workspace=client` | Run frontend only |
-| `npm run dev --workspace=server` | Run backend only |
-| `npm run build` | Build frontend into `client/dist` |
-| `npm run configure:vercel -- https://YOUR-API.onrender.com` | Set the actual public backend URL for Vercel |
-| `npm run build:vercel` | Validate the backend URL, then build for Vercel |
-| `npm test` | Run frontend API/error handling tests and backend validation tests |
-| `npm run test:integration` | Run database, authentication, ticket, and admin API integration tests (local MongoDB required) |
-| `npm start --workspace=server` | Run backend without watch mode |
-| `npm run make-admin --workspace=server -- email@example.com` | Promote an existing registered account to admin |
-| `npm test --workspace=server` | Validate models without a database |
-| `npm run test:integration --workspace=server` | Test database and authentication APIs against local MongoDB |
-
-Vercel frontend and Render backend configuration is included. Follow [the deployment guide](docs/DEPLOYMENT.md) for Atlas, environment variables, API rewrites and live checks. Real hosting URLs still need to be configured; no live deployment has been created.
-
-## Environment variables and database
-
-Copy `server/.env.example` to `server/.env` once; do not overwrite an existing configuration. The server loads this file regardless of the current working directory. Restart the backend after changing `.env`.
-
-| Variable | Required | Local development value |
-| --- | --- | --- |
-| `MONGODB_URI` | Yes | `mongodb://127.0.0.1:27017/helpdesk_ticket_system` |
-| `JWT_SECRET` | Yes | Generate a random secret of at least 32 characters; never commit it |
-| `APP_ORIGIN` | Yes in production | `http://127.0.0.1:5173`; exact frontend origin, no trailing slash |
-| `NODE_ENV` | No | `development`; use `production` with HTTPS for Secure cookies |
-| `PORT` | No | `4000` locally; Render supplies its port |
-| `HOST` | No | `127.0.0.1` locally; `0.0.0.0` in production |
-| `TRUST_PROXY_HOPS` | No | `0` locally; Render configuration starts at `1` |
-
-Development defaults are 5173 (frontend) and 4000 (backend). Never commit `.env` files or paste database credentials into chat. The example contains a local URI and a placeholder secret; the server refuses to start with the placeholder.
-
-### Local MongoDB
-
-Install MongoDB Community Server using the instructions for your operating system at https://www.mongodb.com/docs/manual/installation/. If MongoDB already runs at `127.0.0.1:27017`, no new installation is needed. Use the local URI above.
-
-For an installed `mongod` binary that is not already running, start it in a separate terminal:
+If MongoDB is already running on `127.0.0.1:27017`, keep using that instance. Otherwise, with `mongod` installed and available in your terminal:
 
 ```sh
 mkdir -p "$HOME/.local/share/helpdesk-mongodb"
 mongod --dbpath "$HOME/.local/share/helpdesk-mongodb" --bind_ip 127.0.0.1 --port 27017
 ```
 
-Do not start a second instance on the same port. Keep this terminal running. The local configuration assumes MongoDB is bound to loopback and does not require authentication; use credentials and restricted network access when configuring a remote database.
+Keep this terminal open. This local setup binds MongoDB to the loopback interface. No cloud database is required.
 
-The backend creates the `helpdesk_ticket_system` database and `users`/`tickets`/`sessions` collections during model initialization. It also creates a unique email index and an owner/date ticket index, and a session expiry TTL index. There is no manual migration or seed account in this milestone.
+### 3. Configure the backend
 
-### MongoDB Atlas alternative
-
-An existing Atlas database can be used by setting its driver connection URI in `server/.env`. Include the database name `helpdesk_ticket_system`, use a database user with read/write permissions for that database, and allow your current IP in Atlas network access. URL-encode special characters in credentials. Never use the application user's password as database credentials.
-
-### Models and validation
-
-- User: name (2–80 characters), normalized unique email, bcrypt-format `passwordHash`, role (`user` by default, or `admin`), timestamps. Password hashes are excluded from normal queries and JSON output. Registration hashes passwords with bcrypt at cost 12 before saving. Public registration always assigns the `user` role.
-- Ticket: title (3–150 characters), description (10–5000), category (`Technical`, `Billing`, `Account`, `Other`), priority (`Low`, `Medium`, `High`; default `Medium`), status (`Open`, `In Progress`, `Resolved`; default `Open`), required owner reference, timestamps.
-- Every ticket API requires a valid session. Creation assigns the current user as owner; reads, status updates, and deletions include that owner in the database filter. Query-based status updates use `runValidators: true`.
-- Duplicate emails produce MongoDB error code `11000`; the registration API returns HTTP 409 and a friendly message.
-
-The API starts only after MongoDB connects and indexes initialize. Startup failure exits with a safe error message; check MongoDB availability, the URI, credentials, and network access. Connection strings are not logged.
-
-## API endpoints
-
-### GET /api/health
-
-Returns HTTP 200:
-
-```json
-{ "status": "ok", "message": "Helpdesk backend is running" }
-```
-
-Unknown endpoints return HTTP 404 with a JSON message.
-
-### GET /api/ready
-
-Pings MongoDB. Returns HTTP 200 when connected:
-
-```json
-{ "status": "ok", "database": "connected" }
-```
-
-Returns HTTP 503 with `{ "status": "error", "database": "disconnected" }` when database readiness fails after startup. `/api/health` still reports API liveness in this case.
-
-## Authentication API
-
-All endpoints return JSON. Successful registration and login return `{ "user": { "id", "name", "email", "role" } }` and set the session cookie. Password hashes and JWTs are not included in JSON.
-
-| Method | Endpoint | Body / behavior |
-| --- | --- | --- |
-| POST | `/api/auth/register` | `name`, `email`, `password`, `confirmPassword`; 201 and automatic login |
-| POST | `/api/auth/login` | `email`, `password`; 200 on success |
-| POST | `/api/auth/logout` | No body; revokes the current session and clears its cookie |
-| GET | `/api/auth/me` | Current user; requires a valid session cookie |
-
-Validation errors return 400 with `message` and field `errors`. Invalid credentials or sessions return 401, disallowed origins return 403, duplicate email returns 409, and rate limits return 429 with `Retry-After`. Unknown failures return a generic 500 without internal details.
-
-Passwords must contain at least 8 characters and no more than 72 UTF-8 bytes (bcrypt's input limit). Passwords are not trimmed. Email addresses are trimmed and lowercased. The backend independently validates all inputs and does not accept a role from registration input.
-
-The seven-day JWT is signed with HS256, includes issuer/audience/expiry, and is stored only in an HttpOnly, SameSite=Lax cookie. Production uses Secure cookies and requires HTTPS. Each token also has a database session: logout deletes that session, and subsequent use of the old token fails. Other browsers' sessions remain signed in. Expired database sessions are checked immediately at authentication time and later removed by MongoDB's TTL cleanup. `/auth/me` loads the current user from the database instead of trusting a role in the token.
-
-Cookie-based API writes check the exact `APP_ORIGIN` and reject cross-site Fetch Metadata. Use the documented `127.0.0.1` URL consistently, or change `APP_ORIGIN` to match your chosen frontend origin and restart the backend. Non-browser API clients without an Origin header can use the endpoints with a cookie jar.
-
-Registration and login share a limit of 20 requests per IP per 15 minutes, including successful requests. The limiter is in memory for this single-process assessment; a multi-instance deployment would need a shared store and explicitly configured trusted proxies. No proxy is trusted by default.
-
-## Manual checks for Step 3
-
-1. From the repository root, run `npm run dev` once. Do not start additional copies in `client` and `server`. If an existing terminal already runs the app, use it. Stop it with Ctrl+C before restarting. The client uses `npm run dev`, not `npm start`.
-2. Open http://127.0.0.1:5173/register. Submit an empty form and check field errors.
-3. Enter your name, email, and a new password of at least 8 characters. Enter a different confirmation first to check validation, then correct it. Successful registration opens your ticket workspace with your name. `/dashboard` redirects to `/tickets` for users and `/admin` for admins.
-4. Refresh `/dashboard`; the session should persist.
-5. Log out. Visiting `/dashboard` again should redirect to `/login`.
-6. Try the wrong password, then the correct password. The error should be clear and successful login should open your ticket workspace.
-7. Log out and try registering the same email; the app should show the duplicate-email error.
-8. Check both forms at a narrow mobile width. Labels, errors, and buttons should remain readable.
-9. Database diagnostics remain available at `/api/health` and `/api/ready`; they are no longer the homepage.
-
-The integration tests create uniquely named `helpdesk_test_*` databases on local MongoDB and remove only those test databases afterward. They do not load `.env` or modify the application database. Tests cover validation, persistence, owner references, timestamps, hashing, unique emails, role injection, cookie flags, session revocation, expired/tampered tokens, origin protection, and rate limits.
-
-## Ticket API
-
-All routes require the session cookie. Responses use `{ "ticket": { ... } }` for a single ticket. Ticket fields are `id`, `title`, `description`, `category`, `priority`, `status`, `createdAt`, and `updatedAt`. Dates are ISO timestamps in the API and displayed in the browser's local time.
-
-| Method | Endpoint | Behavior |
-| --- | --- | --- |
-| POST | `/api/tickets` | Create ticket; 201; accepts title, description, category, priority |
-| GET | `/api/tickets?page=1` | Own tickets, newest first; 20 per page |
-| GET | `/api/tickets/:id` | Own ticket details |
-| PATCH | `/api/tickets/:id` | Update status only; body `{ "status": "In Progress" }` |
-| DELETE | `/api/tickets/:id` | Permanently delete an owned ticket; 200 with confirmation message |
-
-List responses include `tickets` and `pagination: { page, pageSize, total, totalPages }`. Page must be a positive integer up to 999999. A page beyond the result set returns an empty list. New tickets always start Open; priority defaults to Medium when omitted. Ownership and initial status are assigned server-side, ignoring any supplied owner/status on creation. PATCH accepts only status; supported transitions are any of Open, In Progress, and Resolved, including reopening.
-
-Invalid form data, IDs, or page values return 400. Unauthenticated requests return 401. Missing and another user's tickets both return 404. The user APIs remain owner-scoped even for admin-role accounts; the separate admin APIs below provide access to all tickets. When a session expires during a ticket action, the frontend returns to login. It does not automatically save unsent form content.
-
-## Manual checks for Step 4
-
-1. Log in and open `/tickets`. A new account should see **No tickets yet**.
-2. Choose **Create ticket** and submit an empty form to check validation. Then enter a title (3–150 characters), description (10–5,000), category, and priority.
-3. Create the ticket. Confirm its details, Open status, chosen priority, and dates. Refresh to verify persistence.
-4. Change status to In Progress, save, then try Resolved. Refresh and check the saved status and updated date.
-5. Return to My tickets and confirm the ticket appears with the correct status.
-6. Copy the ticket URL. Log out, register/log in as a second user, and paste it. The page should show **Ticket not found**; the second user's list must not contain the first user's ticket.
-7. Return to the owner account. Click Delete ticket, then Cancel; confirm the ticket is still there. For a disposable ticket, click Delete ticket again and confirm deletion. The ticket should disappear and its old URL should return Ticket not found.
-8. Check the create form, list, and details at a narrow mobile width. The list paginates after 20 tickets.
-
-Ticket integration tests cover all five protected endpoints, owner/status injection, another user's read/update/delete attempts, status validation, timestamps, pagination, deletion, and revoked sessions. They use disposable test databases.
-
-## Admin setup and dashboard
-
-1. Register an account through the app.
-2. From the repository root, run the following in a separate terminal while the app stays running. Replace the email with that account's registered email:
+Copy the example on first setup only; do not overwrite an existing `.env`:
 
 ```sh
-npm run make-admin --workspace=server -- your-email@example.com
+cp server/.env.example server/.env
+node -e "console.log(require('node:crypto').randomBytes(48).toString('hex'))"
 ```
 
-The command loads `server/.env`, updates only the specified existing account, and is safe to repeat. It does not create accounts or change passwords. Unknown emails produce an error without making changes. This is a local maintenance command for someone who already has access to the server and database; there is no public role-changing API.
+Paste the generated random string as `JWT_SECRET` in `server/.env`:
 
-3. Refresh the app to reload your role. Open http://127.0.0.1:5173/admin or use **Admin dashboard** in the workspace navigation. Future logins automatically open the admin dashboard. **My tickets** remains scoped to the admin's own tickets.
+```dotenv
+MONGODB_URI=mongodb://127.0.0.1:27017/helpdesk_ticket_system
+JWT_SECRET=PASTE_YOUR_GENERATED_RANDOM_SECRET_HERE
+APP_ORIGIN=http://127.0.0.1:5173
+NODE_ENV=development
+```
 
-### Admin endpoints
+| Variable | Purpose |
+| --- | --- |
+| `MONGODB_URI` | Local database connection string. |
+| `JWT_SECRET` | Random secret of at least 32 characters; never commit it. |
+| `APP_ORIGIN` | Exact frontend origin, without a trailing slash. |
+| `NODE_ENV` | Use `development` for the local HTTP setup. |
+| `PORT` | Optional backend port; defaults to `4000`. |
+| `HOST` | Optional bind address; defaults to `127.0.0.1` locally. |
+| `TRUST_PROXY_HOPS` | Defaults to `0`; leave unchanged locally. |
 
-Both endpoints require a valid session and the current database role `admin`. Anonymous users receive 401; normal users receive 403, including when a token claims an admin role. Role changes are checked on every request.
+The frontend needs no `.env` for local development. Vite forwards `/api` requests to port `4000`.
 
-| Method | Endpoint | Behavior |
+MongoDB creates the application database and collections as data is written. Mongoose initializes the model indexes at startup; no SQL schema, migration, or seed command is required. Collections store users, tickets, and sessions. Tickets reference their owner, and session documents support expiry/revocation.
+
+### 4. Start the application
+
+From the repository root, in a separate terminal:
+
+```sh
+npm run dev
+```
+
+This starts both frontend and backend. Open **http://127.0.0.1:5173**. Use this exact address to match `APP_ORIGIN`.
+
+- Backend health: http://127.0.0.1:4000/api/health
+- Database readiness: http://127.0.0.1:4000/api/ready
+
+Register an account to begin. There are no built-in credentials or preloaded tickets.
+
+If you prefer two terminals, run `npm run dev --workspace=server` and `npm run dev --workspace=client` instead of the root command. Do not run both approaches together. The client uses `npm run dev`, not `npm start`.
+
+### 5. Create an administrator
+
+Register the intended account first, then run this command from the repository root, replacing the email:
+
+```sh
+npm run make-admin --workspace=server -- your-registered-email@example.com
+```
+
+Log out and log back in using that account's existing password. The admin dashboard is available at `/admin`. The command promotes an existing account; it does not create an account or reset its password. Public registration always creates a regular user.
+
+## API
+
+All routes use the `/api` prefix. Request bodies use JSON. Authentication is cookie-based; API clients must retain the session cookie. Frontend requests are same-origin through Vite's proxy.
+
+| Method | Endpoint | Access / behavior |
 | --- | --- | --- |
-| GET | `/api/admin/tickets` | List all users' tickets, 20 per page, newest first; include owner name/email, pagination, and global statistics |
-| PATCH | `/api/admin/tickets/:id` | Update any ticket's status; body `{ "status": "Resolved" }` |
+| GET | `/api/health` | Process health. |
+| GET | `/api/ready` | Database readiness; returns 503 when unavailable. |
+| POST | `/api/auth/register` | Register and sign in; `name`, `email`, `password`, `confirmPassword`. |
+| POST | `/api/auth/login` | Sign in with `email`, `password`. |
+| POST | `/api/auth/logout` | Revoke current session and clear cookie. |
+| GET | `/api/auth/me` | Retrieve authenticated user's profile and role. |
+| POST | `/api/tickets` | Create own ticket. |
+| GET | `/api/tickets?page=1` | List own tickets, 20 per page. |
+| GET | `/api/tickets/:id` | Retrieve own ticket. |
+| PATCH | `/api/tickets/:id` | Update own ticket's `status`. |
+| DELETE | `/api/tickets/:id` | Permanently delete own ticket. |
+| GET | `/api/admin/tickets` | Admin-only list, filters, pagination, and global statistics. |
+| PATCH | `/api/admin/tickets/:id` | Admin-only status update for any ticket. |
 
-List query parameters: `search` (case-insensitive literal title substring, maximum 150 characters), `status` (Open, In Progress, Resolved), `priority` (Low, Medium, High), and `page` (positive integer up to 999999). Empty filters mean all values. Filters combine with AND; search characters like `[` and `.*` are treated literally, not as regular expressions. Invalid query values return 400.
+Create-ticket example:
 
-List responses contain `tickets`, `pagination`, and `statistics: { total, open, inProgress, resolved }`. Each ticket includes `owner: { name, email }` (or null when its account is unavailable). Password hashes are never included. Statistics always cover all tickets; pagination totals cover only the filtered results. Updating a status refreshes both counts and the current filtered list, so a ticket may disappear if it no longer matches the filter.
+```json
+{
+  "title": "Unable to download invoice",
+  "description": "The invoice download button does not respond after selecting a billing period.",
+  "category": "Billing",
+  "priority": "Medium"
+}
+```
 
-### Manual checks for Step 5
+Status-update example:
 
-1. Create tickets using two normal user accounts with different priorities/statuses.
-2. Promote your selected admin account using the command above and refresh the browser.
-3. Open Admin dashboard. Confirm both users' tickets and owner details are visible, and check Total/Open/In Progress/Resolved counts.
-4. Search for part of a title and click Apply. Combine it with a status and priority, then click Clear to reset. Filters are saved in the URL and survive refresh.
-5. Expand **View description and dates**. Change a ticket's status and click Save status; verify counts and the owner's ticket page update.
-6. Log in as a normal user and open `/admin`: it must show **Admin access required**. The admin APIs must return 403 for that user's session.
-7. Check the dashboard at mobile width and check an empty search result.
+```json
+{ "status": "In Progress" }
+```
 
-Automated admin tests cover the promotion command, role checks (including revocation), all-ticket listing, combined filters, literal title search, global counts, pagination, missing owners, input validation, and cross-owner status updates.
+Admin query example: `/api/admin/tickets?search=invoice&status=Open&priority=High&page=1`. Filters combine with AND; title search is literal and case-insensitive. Statistics describe all tickets, independent of active filters.
 
-Final QA is recorded in [TESTING.md](docs/TESTING.md). Screenshots and live deployment verification remain part of submission preparation.
+- Categories: `Technical`, `Billing`, `Account`, `Other`.
+- Priorities: `Low`, `Medium`, `High`; default `Medium`.
+- Statuses: `Open`, `In Progress`, `Resolved`; new tickets start `Open`.
+- Title: 3–150 characters; description: 10–5,000 characters.
+- Password: at least 8 characters, at most 72 UTF-8 bytes.
+- Owner, role, timestamps, and initial ticket status are controlled by the server.
+- Ticket update endpoints accept only `status`; title/description editing is outside this implementation.
+- Common error statuses: 400 validation, 401 unauthenticated, 403 unauthorized, 404 missing/inaccessible ticket, 409 duplicate email, 429 rate limit, 503 database unavailable.
+
+User management is registration and authenticated profile retrieval, with a local CLI for administrator provisioning. General user-edit/delete administration is not included.
+
+## Screenshots
+
+These screenshots use fictional demo records in an isolated local database.
+
+### Sign in
+
+![Sign-in page](docs/screenshots/login.png)
+
+### User tickets
+
+![User ticket list](docs/screenshots/tickets.png)
+
+### Ticket details
+
+![Ticket details and status controls](docs/screenshots/ticket-details.png)
+
+### Admin dashboard
+
+![Admin statistics and filters](docs/screenshots/admin.png)
+
+## Verification
+
+```sh
+npm test
+npm run test:integration
+npm run build
+```
+
+Integration tests require local MongoDB at `127.0.0.1:27017`. They use temporary `helpdesk_test_*` databases and clean them up; they do not use the application's `.env` database. See [testing notes and manual acceptance checklist](docs/TESTING.md).
+
+Suggested reviewer flow: register → create ticket → update status → refresh → cancel and confirm deletion of a disposable ticket → promote an account → log in as admin → test combined filters and statistics → log out and confirm protected-page redirection.
+
+## Troubleshooting
+
+- **Port already in use / EADDRINUSE:** a previous copy may already be running. Open the frontend URL first, or stop the earlier dev process with Ctrl+C before restarting. Do not start duplicate servers.
+- **MongoDB connection failed:** start local MongoDB and check the URI/port. The readiness endpoint should report a connected database.
+- **Login or write request rejected:** use `127.0.0.1`, match `APP_ORIGIN`, and keep `NODE_ENV=development` locally. Production secure cookies require HTTPS.
+- **Invalid JWT secret:** replace the example value with the generated random string.
+- **Admin access denied:** register the account, promote the same email, and sign in again.
+
+## Structure and implementation notes
+
+- `client/src/pages`: authentication, ticket, and admin screens.
+- `client/src/auth`: authentication state.
+- `server/src/routes`: REST endpoints and authorization.
+- `server/src/models`: users, tickets, and sessions.
+- `server/src/validation`: request validation rules.
+- `server/scripts/make-admin.js`: explicit admin provisioning.
+- `server/test` and `client/test`: automated checks.
+
+Ticket ownership is enforced by database queries, not only by UI controls. The server reads the user's current role, and logout revokes the stored session. Password hashes are excluded from normal model output. Write requests have origin checks; production cookies are Secure and local cookies are HttpOnly/SameSite=Lax.
+
+This assessment intentionally omits email verification, password reset, attachments, and notifications. Deletion is permanent. Authentication rate limits are stored in process memory; multi-instance production deployments would need a shared rate-limit store.
+
+## Optional deployment
+
+See [Render + Vercel deployment instructions](docs/DEPLOYMENT.md) only if a public deployment is required later. The current submission is local. Render cannot reach your laptop's MongoDB through `127.0.0.1`: that address refers to the Render server itself. Public deployment needs a database reachable from the backend. The Vercel backend destination remains a placeholder and must be configured before deployment.

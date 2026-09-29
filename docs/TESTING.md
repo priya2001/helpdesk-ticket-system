@@ -35,4 +35,14 @@ Browser checks used temporary test accounts and tickets, removed afterward. Exis
 5. As admin, combine title/status/priority filters and update a ticket; verify both the owner view and the statistics.
 6. Use a narrow browser window to check forms and buttons.
 
-Fresh-install verification, submission screenshots, and deployment testing belong to the submission-preparation step and are not claimed complete here.
+## Local submission verification — 29 September 2026
+
+- Extracted the committed source into a clean temporary directory without existing dependencies or application secrets; `npm ci` passed (zero audit findings at install time).
+- `npm test`: 18 tests passed across deployment configuration, client API handling, and backend units.
+- `npm run test:integration`: 31 tests passed, including nested tests.
+- `npm run build`: Vite production build passed.
+- Started the root `npm run dev` command with an isolated local database. Used ports 4001/5174 in the temporary copy because the user's normal 4000/5173 processes were already running; adjusted that copy's proxy and APP_ORIGIN accordingly.
+- Captured real browser screenshots of sign-in, user tickets, ticket details, and admin statistics using fictional records. Screenshots are in `docs/screenshots` and embedded in the README.
+- Temporary demo data and processes were cleaned up after capture; the user's application database and existing servers were preserved.
+
+Public deployment is not complete or claimed as verified. The submission uses local MongoDB. The user acceptance checklist above still needs the candidate's final manual run before submission.
